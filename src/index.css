@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/* ─── THEME ────────────────────────────────────────────────────────────────
+   Edit only these values to retheme the entire dashboard.
+   Every bg-primary, text-secondary, bg-sidebar, etc. Tailwind class below
+   will automatically reflect your changes.
+   ────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Primary — used for sidebar active, buttons, focus rings, highlights */
+  --color-primary:       #7C3AED;
+  --color-primary-dark:  #6D28D9;
+  --color-primary-light: #EDE9FE;
+  --color-primary-text:  #5B21B6;
+
+  /* Secondary — used for sky/info actions */
+  --color-secondary:       #0EA5E9;
+  --color-secondary-dark:  #0284C7;
+  --color-secondary-light: #E0F2FE;
+  --color-secondary-text:  #0369A1;
+
+  /* Accent — used for warnings and highlights */
+  --color-accent:       #F59E0B;
+  --color-accent-dark:  #D97706;
+  --color-accent-light: #FEF3C7;
+  --color-accent-text:  #92400E;
+
+  /* Sidebar */
+  --color-sidebar:       #111827;
+  --color-sidebar-hover: #1F2937;
+
+  /* Semantic */
+  --color-success:       #10B981;
+  --color-success-light: #D1FAE5;
+  --color-success-text:  #065F46;
+
+  --color-error:         #EF4444;
+  --color-error-light:   #FEE2E2;
+  --color-error-text:    #991B1B;
+
+  --color-warning:       #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-warning-text:  #92400E;
+
+  --color-info:          #0EA5E9;
+  --color-info-light:    #E0F2FE;
+  --color-info-text:     #0369A1;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #F8FAFC;
+  color: #0F172A;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
