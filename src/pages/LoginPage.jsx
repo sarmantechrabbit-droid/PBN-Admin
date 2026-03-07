@@ -1,29 +1,55 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { UtensilsCrossed, Eye, EyeOff, LogIn } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { UtensilsCrossed, Eye, EyeOff, LogIn } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 const ROLES = [
-  'Admin',
-  'Manager',
-  'Chef',
-  'Warehouse Staff',
-  'Delivery Staff',
-  'Auditor',
+  "Corporate Admin",
+  "Unit Manager",
+  "Chef",
+  "Order Logger",
+  "Quality Reviewer",
+  "Customer Feedback Collector",
+  "CRA Auditor",
 ];
 
 const DEMO_CREDS = [
-  { role: 'Admin', email: 'admin@pbnrestaurant.com', password: 'admin123' },
-  { role: 'Manager', email: 'manager@pbnrestaurant.com', password: 'manager123' },
-  { role: 'Chef', email: 'chef@pbnrestaurant.com', password: 'chef123' },
-  { role: 'Warehouse Staff', email: 'warehouse@pbnrestaurant.com', password: 'warehouse123' },
-  { role: 'Delivery Staff', email: 'delivery@pbnrestaurant.com', password: 'delivery123' },
-  { role: 'Auditor', email: 'auditor@pbnrestaurant.com', password: 'auditor123' },
+  {
+    role: "Corporate Admin",
+    email: "corporate@pbnrestaurant.com",
+    password: "corporate123",
+  },
+  {
+    role: "Unit Manager",
+    email: "manager@pbnrestaurant.com",
+    password: "manager123",
+  },
+  { role: "Chef", email: "chef@pbnrestaurant.com", password: "chef123" },
+  {
+    role: "Order Logger",
+    email: "orderlogger@pbnrestaurant.com",
+    password: "orderlogger123",
+  },
+  {
+    role: "Quality Reviewer",
+    email: "reviewer@pbnrestaurant.com",
+    password: "reviewer123",
+  },
+  {
+    role: "Customer Feedback Collector",
+    email: "feedback@pbnrestaurant.com",
+    password: "feedback123",
+  },
+  {
+    role: "CRA Auditor",
+    email: "auditor@pbnrestaurant.com",
+    password: "auditor123",
+  },
 ];
 
 export default function LoginPage() {
   const { login, error } = useAuth();
-  const [form, setForm] = useState({ email: '', password: '', role: '' });
+  const [form, setForm] = useState({ email: "", password: "", role: "" });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -60,19 +86,26 @@ export default function LoginPage() {
               </div>
               <div>
                 <p className="text-lg font-bold">PBN Restaurant</p>
-                <p className="text-white/60 text-sm">Experiment & Compliance System</p>
+                <p className="text-white/60 text-sm">
+                  Experiment & Compliance System
+                </p>
               </div>
             </div>
             <h1 className="text-4xl font-bold leading-tight mb-4">
-              Manage. Monitor.<br />Innovate.
+              Manage. Monitor.
+              <br />
+              Innovate.
             </h1>
             <p className="text-white/70 text-base leading-relaxed">
-              A centralized platform for experiments, inventory, orders, deliveries, and compliance auditing.
+              A centralized platform for experiments, inventory, orders,
+              deliveries, and compliance auditing.
             </p>
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Quick Demo Login</p>
+            <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
+              Quick Demo Login
+            </p>
             {DEMO_CREDS.map((c) => (
               <button
                 key={c.role}
@@ -80,7 +113,9 @@ export default function LoginPage() {
                 className="w-full text-left px-4 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-sm text-white transition flex items-center justify-between group"
               >
                 <span className="font-medium">{c.role}</span>
-                <span className="text-white/50 text-xs group-hover:text-white transition">{c.email}</span>
+                <span className="text-white/50 text-xs group-hover:text-white transition">
+                  {c.email}
+                </span>
               </button>
             ))}
           </div>
@@ -98,8 +133,12 @@ export default function LoginPage() {
             <span className="font-bold text-slate-800">PBN Restaurant</span>
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-800 mb-1">Welcome back</h2>
-          <p className="text-slate-500 text-sm mb-8">Sign in to your account to continue.</p>
+          <h2 className="text-2xl font-bold text-slate-800 mb-1">
+            Welcome back
+          </h2>
+          <p className="text-slate-500 text-sm mb-8">
+            Sign in to your account to continue.
+          </p>
 
           {error && (
             <motion.div
@@ -135,7 +174,7 @@ export default function LoginPage() {
               </label>
               <div className="relative">
                 <input
-                  type={showPass ? 'text' : 'password'}
+                  type={showPass ? "text" : "password"}
                   name="password"
                   value={form.password}
                   onChange={handleChange}
@@ -167,7 +206,9 @@ export default function LoginPage() {
               >
                 <option value="">-- Select your role --</option>
                 {ROLES.map((r) => (
-                  <option key={r} value={r}>{r}</option>
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
                 ))}
               </select>
             </div>
@@ -190,7 +231,9 @@ export default function LoginPage() {
 
           {/* Mobile demo hint */}
           <div className="mt-6 lg:hidden">
-            <p className="text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">Quick Demo</p>
+            <p className="text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">
+              Quick Demo
+            </p>
             <div className="flex flex-wrap gap-2">
               {DEMO_CREDS.map((c) => (
                 <button

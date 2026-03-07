@@ -8,6 +8,7 @@ import Button from '../components/ui/Button';
 import Table from '../components/ui/Table';
 import Badge from '../components/ui/Badge';
 import { deliveries } from '../data/deliveries';
+import { canPerformAction, getRoleRestrictions } from '../utils/rolePermissions';
 
 const defaultForm = {
   deliveryId: '',
@@ -15,7 +16,7 @@ const defaultForm = {
   route: '',
   deliveryTime: '',
   fuelConsumption: '',
-  ordersCount: '',
+  routeScreenshot: null,
 };
 
 export default function DeliveryLogging({ user }) {
@@ -24,7 +25,11 @@ export default function DeliveryLogging({ user }) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('log');
 
-  const isReadOnly = user?.role === 'Auditor';
+  const role = user?.role;
+  const restrictions = getRoleRestrictions(role);
+  const isReadOnly = restrictions.readOnly || role === 'CRA Auditor';
+  const canLogDeliveries = canPerformAction(role, 'canLogDeliveries');
+  const canViewDeliveries = canPerformAction(role, 'canViewDeliveries');
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -40,25 +45,22 @@ export default function DeliveryLogging({ user }) {
 
   const columns = [
     { key: 'id', label: 'Delivery ID' },
-    { key: 'driver', label: 'Driver' },
-    { key: 'date', label: 'Date' },
     {
       key: 'distance',
-      label: 'Distance',
+      label: 'Distance (km)',
       render: (v) => `${v} km`,
     },
     { key: 'route', label: 'Route', render: (v) => <span className="text-xs">{v}</span> },
-    { key: 'deliveryTime', label: 'Time' },
+    { key: 'deliveryTime', label: 'Delivery Time' },
     {
       key: 'fuelConsumption',
-      label: 'Fuel (L)',
+      label: 'Fuel Consumption (L)',
       render: (v) => `${v}L`,
     },
-    { key: 'ordersCount', label: 'Orders' },
     {
-      key: 'status',
-      label: 'Status',
-      render: (v) => <Badge label={v} />,
+      key: 'screenshot',
+      label: 'Screenshot',
+      render: (v) => v ? '✓ Uploaded' : '—',
     },
   ];
 
@@ -100,7 +102,7 @@ export default function DeliveryLogging({ user }) {
               Log Another Delivery
             </Button>
           </div>
-        ) : (
+        ) : canLogDeliveries ? (
           <div className="max-w-2xl">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
@@ -119,13 +121,14 @@ export default function DeliveryLogging({ user }) {
                     disabled={isReadOnly}
                   />
                   <FormInput
-                    label="Total Orders Delivered"
-                    name="ordersCount"
+                    label="Distance (km)"
+                    name="distance"
                     type="number"
-                    value={form.ordersCount}
+                    step="0.1"
+                    value={form.distance}
                     onChange={handleChange}
                     required
-                    placeholder="e.g. 4"
+                    placeholder="e.g. 12.4"
                     disabled={isReadOnly}
                   />
                   <div className="md:col-span-2">
@@ -140,28 +143,19 @@ export default function DeliveryLogging({ user }) {
                     />
                   </div>
                   <FormInput
-                    label="Distance (km)"
-                    name="distance"
-                    type="number"
-                    value={form.distance}
-                    onChange={handleChange}
-                    required
-                    placeholder="e.g. 12.4"
-                    disabled={isReadOnly}
-                  />
-                  <FormInput
                     label="Delivery Time"
                     name="deliveryTime"
+                    type="time"
                     value={form.deliveryTime}
                     onChange={handleChange}
                     required
-                    placeholder="e.g. 45 min"
                     disabled={isReadOnly}
                   />
                   <FormInput
                     label="Fuel Consumption (L)"
                     name="fuelConsumption"
                     type="number"
+                    step="0.1"
                     value={form.fuelConsumption}
                     onChange={handleChange}
                     required
@@ -194,11 +188,31 @@ export default function DeliveryLogging({ user }) {
               )}
             </form>
           </div>
+        ) : (
+          <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold">
+              !
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-700">Access Restricted</p>
+              <p className="text-xs text-slate-500">{role} role does not have permission to log deliveries.</p>
+            </div>
+          </div>
         )
-      ) : (
+      ) : canViewDeliveries ? (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
           <p className="text-xs text-slate-400 mb-4">{deliveries.length} delivery record(s)</p>
           <Table columns={columns} data={deliveries} />
+        </div>
+      ) : (
+        <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold">
+            !
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-700">View Access Restricted</p>
+            <p className="text-xs text-slate-500">{role} role does not have permission to view delivery history.</p>
+          </div>
         </div>
       )}
     </div>

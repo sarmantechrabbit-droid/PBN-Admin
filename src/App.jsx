@@ -14,6 +14,12 @@ import OrderLogging from './pages/OrderLogging';
 import DeliveryLogging from './pages/DeliveryLogging';
 import AIInsights from './pages/AIInsights';
 import AuditViewer from './pages/AuditViewer';
+import CustomerFeedback from './pages/CustomerFeedback';
+import BranchManagementPage from './pages/BranchManagementPage';
+import ExperimentCategoriesPage from './pages/ExperimentCategoriesPage';
+import GlobalReportsPage from './pages/GlobalReportsPage';
+import AuditModePage from './pages/AuditModePage';
+import AIActivityLogsPage from './pages/AIActivityLogsPage';
 
 function getDefaultPage() {
   return 'dashboard';
@@ -31,6 +37,12 @@ function resolvePageForRole(page, role) {
     deliveries: perms.canViewDeliveries || perms.canLogDeliveries,
     'ai-insights': perms.canViewAIInsights,
     audit: perms.canViewAudit,
+    'customer-feedback': perms.canViewCustomerFeedback || perms.canCreateCustomerFeedback,
+    'admin/branches': perms.canManageBranches,
+    'admin/experiment-categories': perms.canManageExperimentCategories,
+    'admin/global-reports': perms.canViewGlobalReports,
+    'admin/audit-mode': perms.canManageAuditMode,
+    'admin/ai-activity-logs': perms.canViewAIActivityLogs,
   };
   return pageGuards[page] ? page : 'dashboard';
 }
@@ -78,6 +90,12 @@ function AppContent() {
     deliveries: <DeliveryLogging {...pageProps} />,
     'ai-insights': <AIInsights {...pageProps} />,
     audit: <AuditViewer {...pageProps} />,
+    'customer-feedback': <CustomerFeedback {...pageProps} />,
+    'admin/branches': <BranchManagementPage {...pageProps} />,
+    'admin/experiment-categories': <ExperimentCategoriesPage {...pageProps} />,
+    'admin/global-reports': <GlobalReportsPage {...pageProps} />,
+    'admin/audit-mode': <AuditModePage {...pageProps} />,
+    'admin/ai-activity-logs': <AIActivityLogsPage {...pageProps} />,
   };
 
   return (

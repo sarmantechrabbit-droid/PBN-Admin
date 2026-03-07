@@ -2,7 +2,8 @@ import { motion } from 'framer-motion';
 import {
   FlaskConical, TrendingUp, ShoppingCart, Clock,
   AlertTriangle, Calendar, Truck, Fuel, Package,
-  CheckCircle, XCircle, Eye,
+  CheckCircle, XCircle, Eye, Route, Zap, History,
+  ClipboardList, BarChart3, Activity, Tags, Building2, MessageSquare,
 } from 'lucide-react';
 import StatCard from '../components/ui/StatCard';
 import Badge from '../components/ui/Badge';
@@ -15,12 +16,13 @@ import { experiments } from '../data/experiments';
 import { orders } from '../data/orders';
 
 const roleConfigs = {
-  Admin: ['restaurant', 'warehouse', 'delivery'],
-  Manager: ['restaurant', 'warehouse'],
-  Chef: ['chef'],
-  'Warehouse Staff': ['warehouse'],
-  'Delivery Staff': ['delivery'],
-  Auditor: ['restaurant', 'warehouse', 'delivery'],
+  'Corporate Admin': ['admin'],
+  'Unit Manager': ['restaurant', 'warehouse'],
+  'Chef': ['chef'],
+  'Order Logger': ['orders'],
+  'Quality Reviewer': ['restaurant', 'reviewer'],
+  'Customer Feedback Collector': ['feedback'],
+  'CRA Auditor': ['restaurant', 'warehouse', 'delivery', 'audit'],
 };
 
 export default function Dashboard({ user }) {
@@ -67,9 +69,9 @@ export default function Dashboard({ user }) {
                 trend={8}
               />
               <StatCard
-                title="Avg Order Time"
-                value={orderStats.avgOrderTime}
-                subtitle={`${orderStats.completedToday} completed today`}
+                title="Peak Production Hours"
+                value="2-4 PM"
+                subtitle="Highest kitchen activity"
                 icon={Clock}
                 color="amber"
               />
@@ -124,13 +126,6 @@ export default function Dashboard({ user }) {
             </h3>
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
               <StatCard
-                title="Total Inventory Items"
-                value={inventoryStats.totalItems}
-                subtitle="Active ingredients"
-                icon={Package}
-                color="emerald"
-              />
-              <StatCard
                 title="Low Stock Alerts"
                 value={inventoryStats.lowStock}
                 subtitle="Need restocking"
@@ -139,58 +134,227 @@ export default function Dashboard({ user }) {
                 trend={-1}
               />
               <StatCard
-                title="Expiring Soon"
+                title="Expiring Ingredients"
                 value={inventoryStats.expiringItems}
                 subtitle="Within 7 days"
                 icon={Calendar}
                 color="red"
               />
               <StatCard
-                title="Damaged Goods"
+                title="Supplier Quality Issues"
                 value={inventoryStats.damagedGoods}
                 subtitle="Require inspection"
                 icon={XCircle}
                 color="red"
               />
+              <StatCard
+                title="Total Inventory Items"
+                value={inventoryStats.totalItems}
+                subtitle="Active ingredients"
+                icon={Package}
+                color="emerald"
+              />
             </div>
           </section>
         )}
 
-        {/* Delivery Metrics */}
-        {sections.includes('delivery') && (
+        {/* Corporate Admin Metrics */}
+        {sections.includes('admin') && (
           <section>
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
-              Delivery Metrics
+              Corporate Admin Metrics
             </h3>
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
               <StatCard
-                title="Delivery Efficiency"
-                value={`${deliveryStats.avgEfficiency}%`}
-                subtitle={`${deliveryStats.deliveredToday} delivered today`}
-                icon={Truck}
-                color="sky"
-                trend={3}
-              />
-              <StatCard
-                title="Avg Delivery Time"
-                value={deliveryStats.avgDeliveryTime}
-                subtitle="Across all routes"
-                icon={Clock}
+                title="Global Reports"
+                value="12"
+                subtitle="Reports generated this month"
+                icon={BarChart3}
                 color="purple"
+                trend={5}
               />
               <StatCard
-                title="Fuel Consumed"
-                value={`${deliveryStats.totalFuelL}L`}
-                subtitle="Total today"
-                icon={Fuel}
+                title="AI Activity Logs"
+                value="847"
+                subtitle="AI operations logged"
+                icon={Activity}
+                color="sky"
+                trend={12}
+              />
+              <StatCard
+                title="Experiment Categories"
+                value="8"
+                subtitle="Active categories"
+                icon={Tags}
+                color="emerald"
+              />
+              <StatCard
+                title="Branch Management"
+                value="15"
+                subtitle="Active branches"
+                icon={Building2}
+                color="amber"
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Order Logger Metrics */}
+        {sections.includes('orders') && (
+          <section>
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+              Order Logging Metrics
+            </h3>
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+              <StatCard
+                title="Orders Logged Today"
+                value={orderStats.ordersPerHour * 8}
+                subtitle="Across all shifts"
+                icon={ShoppingCart}
+                color="sky"
+                trend={8}
+              />
+              <StatCard
+                title="Peak Hours"
+                value={orderStats.peakHour}
+                subtitle="Highest activity"
+                icon={Clock}
                 color="amber"
               />
               <StatCard
-                title="Delayed Deliveries"
-                value={deliveryStats.delayedCount}
-                subtitle="Past 24 hours"
-                icon={AlertTriangle}
+                title="Order Accuracy"
+                value="98.5%"
+                subtitle="Correct order logging"
+                icon={CheckCircle}
+                color="emerald"
+                trend={2}
+              />
+              <StatCard
+                title="Linked to Experiments"
+                value="23"
+                subtitle="Orders linked to batches"
+                icon={FlaskConical}
+                color="purple"
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Quality Reviewer Metrics */}
+        {sections.includes('reviewer') && (
+          <section>
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+              Quality Review Metrics
+            </h3>
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+              <StatCard
+                title="Pending Reviews"
+                value={experimentStats.pendingReview}
+                subtitle="Awaiting approval"
+                icon={Clock}
+                color="amber"
+              />
+              <StatCard
+                title="Approved Today"
+                value="5"
+                subtitle="Experiments approved"
+                icon={CheckCircle}
+                color="emerald"
+                trend={3}
+              />
+              <StatCard
+                title="Rejected Today"
+                value="2"
+                subtitle="Experiments rejected"
+                icon={XCircle}
                 color="red"
+              />
+              <StatCard
+                title="AI Variance Analysis"
+                value="12"
+                subtitle="AI insights reviewed"
+                icon={Zap}
+                color="purple"
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Customer Feedback Metrics */}
+        {sections.includes('feedback') && (
+          <section>
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+              Customer Feedback Metrics
+            </h3>
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+              <StatCard
+                title="Feedback Collected"
+                value="47"
+                subtitle="This week"
+                icon={MessageSquare}
+                color="sky"
+                trend={15}
+              />
+              <StatCard
+                title="Average Rating"
+                value="4.2"
+                subtitle="Out of 5 stars"
+                icon={TrendingUp}
+                color="emerald"
+                trend={0.3}
+              />
+              <StatCard
+                title="Linked to Orders"
+                value="89%"
+                subtitle="Feedback with order ID"
+                icon={ShoppingCart}
+                color="purple"
+              />
+              <StatCard
+                title="Complaint Resolution"
+                value="24h"
+                subtitle="Average response time"
+                icon={Clock}
+                color="amber"
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Audit Metrics */}
+        {sections.includes('audit') && (
+          <section>
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+              Audit & Compliance Metrics
+            </h3>
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+              <StatCard
+                title="Audit Logs"
+                value="1,247"
+                subtitle="Total entries"
+                icon={ClipboardList}
+                color="slate"
+              />
+              <StatCard
+                title="Compliance Score"
+                value="98.7%"
+                subtitle="Overall compliance"
+                icon={CheckCircle}
+                color="emerald"
+              />
+              <StatCard
+                title="Version History"
+                value="156"
+                subtitle="Tracked versions"
+                icon={History}
+                color="purple"
+              />
+              <StatCard
+                title="Approval Records"
+                value="89"
+                subtitle="Documented approvals"
+                icon={Eye}
+                color="sky"
               />
             </div>
           </section>

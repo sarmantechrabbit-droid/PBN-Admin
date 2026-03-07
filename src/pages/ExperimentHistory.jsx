@@ -1,19 +1,34 @@
 import { useState } from 'react';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, UserPlus, Users, Settings, CheckCircle, XCircle, Eye } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Table from '../components/ui/Table';
 import Badge from '../components/ui/Badge';
+import Button from '../components/ui/Button';
 import { experiments } from '../data/experiments';
+import { AssignChefModal, AssignReviewerModal, ConfigureMetadataModal } from '../components/ui/ExperimentModals';
+import ReviewerApprovalModal from '../components/ui/ReviewerApprovalModal';
+import ExperimentDetailsModal from '../components/ui/ExperimentDetailsModal';
+import { rolePermissions, canPerformAction, getRoleRestrictions } from '../utils/rolePermissions';
 
 const ALL_STATUSES = ['All', 'Approved', 'Under Review', 'Failed', 'Pending'];
 
 export default function ExperimentHistory({ user }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [selectedExperiment, setSelectedExperiment] = useState(null);
+  const [modalType, setModalType] = useState(null);
+  const [experimentsData, setExperimentsData] = useState(experiments);
 
-  const isChef = user?.role === 'Chef';
+  const role = user?.role;
+  const isChef = role === 'Chef';
+  const isUnitManager = role === 'Unit Manager';
+  const isQualityReviewer = role === 'Quality Reviewer';
+  const isCRAuditor = role === 'CRA Auditor';
+  const perms = rolePermissions[role] || {};
+  const restrictions = getRoleRestrictions(role);
+  const isReadOnly = restrictions.readOnly;
 
-  const filtered = experiments.filter((exp) => {
+  const filtered = experimentsData.filter((exp) => {
     const matchSearch =
       exp.name.toLowerCase().includes(search.toLowerCase()) ||
       exp.id.toLowerCase().includes(search.toLowerCase()) ||
@@ -23,11 +38,68 @@ export default function ExperimentHistory({ user }) {
     return matchSearch && matchStatus && matchChef;
   });
 
-  const columns = [
+  const handleAssignment = (experimentId, updates) => {
+    setExperimentsData(prev => 
+      prev.map(exp => 
+        exp.id === experimentId ? { ...exp, ...updates } : exp
+      )
+    );
+  };
+
+  const handleApproval = (experimentId, remarks) => {
+    setExperimentsData(prev => 
+      prev.map(exp => 
+        exp.id === experimentId 
+          ? { ...exp, status: 'Approved', reviewerRemarks: remarks, reviewedBy: user?.name, reviewedDate: new Date().toISOString().split('T')[0] }
+          : exp
+      )
+    );
+  };
+
+  const handleRejection = (experimentId, remarks) => {
+    setExperimentsData(prev => 
+      prev.map(exp => 
+        exp.id === experimentId 
+          ? { ...exp, status: 'Failed', reviewerRemarks: remarks, reviewedBy: user?.name, reviewedDate: new Date().toISOString().split('T')[0] }
+          : exp
+      )
+    );
+  };
+
+  const openModal = (experiment, type) => {
+    setSelectedExperiment(experiment);
+    setModalType(type);
+  };
+
+  const closeModal = () => {
+    setSelectedExperiment(null);
+    setModalType(null);
+  };
+
+  const canModifyExperiment = (experiment) => {
+    return isUnitManager && experiment.status === 'Pending';
+  };
+
+  const canReviewExperiment = (experiment) => {
+    return isQualityReviewer && (experiment.status === 'Under Review' || experiment.status === 'Pending');
+  };
+
+  const baseColumns = [
     { key: 'id', label: 'Experiment ID' },
     { key: 'name', label: 'Name', render: (v) => <span className="font-medium text-slate-800">{v}</span> },
     { key: 'recipeVersion', label: 'Version' },
     { key: 'chef', label: 'Chef' },
+  ];
+
+  const managerColumns = isUnitManager ? [
+    { key: 'assignedChef', label: 'Assigned Chef', render: (v) => v || <span className="text-slate-400 text-xs">Not assigned</span> },
+    { key: 'assignedReviewer', label: 'Assigned Reviewer', render: (v) => v || <span className="text-slate-400 text-xs">Not assigned</span> },
+    { key: 'batchId', label: 'Batch ID', render: (v) => v || <span className="text-slate-400 text-xs">Not set</span> },
+    { key: 'temperatureLog', label: 'Temperature Log', render: (v) => v ? `${v}°C` : <span className="text-slate-400 text-xs">Not set</span> },
+    { key: 'ingredientLotNumber', label: 'Ingredient Lot', render: (v) => v || <span className="text-slate-400 text-xs">Not set</span> },
+  ] : [];
+
+  const endColumns = [
     { key: 'date', label: 'Date' },
     {
       key: 'status',
@@ -63,11 +135,94 @@ export default function ExperimentHistory({ user }) {
     },
   ];
 
+  const actionColumn = (isUnitManager || isQualityReviewer || isCRAuditor) ? [{
+    key: 'actions',
+    label: 'Actions',
+    render: (_, experiment) => (
+      <div className="flex gap-1">
+        {/* View Details button for CRA Auditor */}
+        {isCRAuditor && (
+          <Button
+            size="sm"
+            variant="outline"
+            icon={Eye}
+            onClick={() => openModal(experiment, 'viewDetails')}
+            className="border-blue-200 text-blue-600 hover:bg-blue-50"
+          >
+            View Details
+          </Button>
+        )}
+        
+        {/* Unit Manager actions */}
+        {canModifyExperiment(experiment) && (
+          <>
+            <Button
+              size="sm"
+              variant="outline"
+              icon={UserPlus}
+              onClick={() => openModal(experiment, 'assignChef')}
+            >
+              Assign Chef
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              icon={Users}
+              onClick={() => openModal(experiment, 'assignReviewer')}
+            >
+              Assign Reviewer
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              icon={Settings}
+              onClick={() => openModal(experiment, 'configureMetadata')}
+            >
+              Configure
+            </Button>
+          </>
+        )}
+        
+        {/* Quality Reviewer actions */}
+        {canReviewExperiment(experiment) && (
+          <>
+            <Button
+              size="sm"
+              variant="outline"
+              icon={CheckCircle}
+              onClick={() => openModal(experiment, 'approve')}
+              className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            >
+              Approve
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              icon={XCircle}
+              onClick={() => openModal(experiment, 'reject')}
+              className="border-red-200 text-red-600 hover:bg-red-50"
+            >
+              Reject
+            </Button>
+          </>
+        )}
+      </div>
+    ),
+  }] : [];
+
+  const columns = [...baseColumns, ...managerColumns, ...endColumns, ...actionColumn];
+
   return (
     <div>
       <PageHeader
         title="Experiment History"
-        subtitle={isChef ? 'Your submitted experiments' : 'All experiment records across all chefs'}
+        subtitle={
+          isChef ? 'Your submitted experiments' : 
+          isUnitManager ? 'Manage experiments for your outlet' : 
+          isQualityReviewer ? 'Review and approve experiments' :
+          isCRAuditor ? 'Read-only audit view of all experiments' :
+          'All experiment records across all chefs'
+        }
       />
 
       {/* Filters */}
@@ -104,7 +259,7 @@ export default function ExperimentHistory({ user }) {
       {/* Summary strip */}
       <div className="flex gap-4 mb-5">
         {ALL_STATUSES.filter((s) => s !== 'All').map((s) => {
-          const count = experiments.filter(
+          const count = experimentsData.filter(
             (e) => e.status === s && (isChef ? e.chef === user?.name : true)
           ).length;
           return (
@@ -125,6 +280,43 @@ export default function ExperimentHistory({ user }) {
           emptyMessage="No experiments match your filters."
         />
       </div>
+
+      {/* Modals */}
+      <AssignChefModal
+        isOpen={modalType === 'assignChef'}
+        onClose={closeModal}
+        experiment={selectedExperiment}
+        onSave={handleAssignment}
+      />
+      
+      <AssignReviewerModal
+        isOpen={modalType === 'assignReviewer'}
+        onClose={closeModal}
+        experiment={selectedExperiment}
+        onSave={handleAssignment}
+      />
+      
+      <ConfigureMetadataModal
+        isOpen={modalType === 'configureMetadata'}
+        onClose={closeModal}
+        experiment={selectedExperiment}
+        onSave={handleAssignment}
+      />
+
+      <ReviewerApprovalModal
+        isOpen={modalType === 'approve' || modalType === 'reject'}
+        onClose={closeModal}
+        experiment={selectedExperiment}
+        onApprove={handleApproval}
+        onReject={handleRejection}
+      />
+
+      <ExperimentDetailsModal
+        isOpen={modalType === 'viewDetails'}
+        onClose={closeModal}
+        experiment={selectedExperiment}
+        userRole={role}
+      />
     </div>
   );
 }

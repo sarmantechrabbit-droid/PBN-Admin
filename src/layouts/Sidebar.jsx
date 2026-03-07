@@ -12,6 +12,12 @@ import {
   ChevronLeft,
   ChevronRight,
   UtensilsCrossed,
+  Building2,
+  Tags,
+  BarChart3,
+  Shield,
+  Activity,
+  MessageSquare,
 } from 'lucide-react';
 
 const iconMap = {
@@ -24,6 +30,12 @@ const iconMap = {
   deliveries: Truck,
   'ai-insights': Sparkles,
   audit: ClipboardList,
+  'customer-feedback': MessageSquare,
+  'admin/branches': Building2,
+  'admin/experiment-categories': Tags,
+  'admin/global-reports': BarChart3,
+  'admin/audit-mode': Shield,
+  'admin/ai-activity-logs': Activity,
 };
 
 export default function Sidebar({ collapsed, onToggle, activePage, onNavigate, navItems }) {
@@ -57,7 +69,8 @@ export default function Sidebar({ collapsed, onToggle, activePage, onNavigate, n
 
       {/* Nav Items */}
       <nav className="flex-1 py-4 flex flex-col gap-1 overflow-y-auto overflow-x-hidden">
-        {navItems.map((item) => {
+        {/* Regular nav items */}
+        {navItems.filter(item => !item.key.startsWith('admin/')).map((item) => {
           const Icon = iconMap[item.key] || LayoutDashboard;
           const isActive = activePage === item.key;
 
@@ -94,12 +107,71 @@ export default function Sidebar({ collapsed, onToggle, activePage, onNavigate, n
             </button>
           );
         })}
+        
+        {/* Corporate Admin Section */}
+        {navItems.some(item => item.key.startsWith('admin/')) && (
+          <>
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="px-5 py-2 mt-4"
+                >
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Corporate Admin
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            {navItems.filter(item => item.key.startsWith('admin/')).map((item) => {
+              const Icon = iconMap[item.key] || LayoutDashboard;
+              const isActive = activePage === item.key;
+
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => onNavigate(item.key)}
+                  className={`relative flex items-center gap-3 mx-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
+                    isActive
+                      ? 'bg-primary text-white'
+                      : 'text-gray-400 hover:bg-sidebar-hover hover:text-white'
+                  }`}
+                >
+                  <Icon size={18} className="shrink-0" />
+                  <AnimatePresence>
+                    {!collapsed && (
+                      <motion.span
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -8 }}
+                        transition={{ duration: 0.15 }}
+                        className="whitespace-nowrap overflow-hidden"
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                  {/* Tooltip on collapsed */}
+                  {collapsed && (
+                    <div className="absolute left-full ml-3 px-2 py-1 bg-sidebar-hover text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                      {item.label}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </>
+        )}
       </nav>
 
       {/* Collapse Toggle */}
       <button
         onClick={onToggle}
-        className="absolute -right-3.5 top-[72px] w-7 h-7 rounded-full bg-sidebar-hover border-2 border-sidebar flex items-center justify-center hover:bg-primary transition z-30"
+        className="absolute -right-[8px] top-[60px] w-8 h-8 rounded-full bg-sidebar-hover border-2 border-sidebar flex items-center justify-center hover:bg-primary transition z-30"
       >
         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>

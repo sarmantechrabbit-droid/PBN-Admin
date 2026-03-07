@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Search, Package, AlertTriangle, Calendar, XCircle } from 'lucide-react';
+import { Search, Package, AlertTriangle, Calendar, XCircle, Brain } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Table from '../components/ui/Table';
 import Badge from '../components/ui/Badge';
 import StatCard from '../components/ui/StatCard';
+import AlertCard from '../components/ui/AlertCard';
 import { inventory, inventoryStats } from '../data/inventory';
 
 const ALL_STOCK = ['All', 'Normal', 'Low', 'Critical'];
@@ -25,19 +26,17 @@ export default function InventoryMonitor() {
   });
 
   const columns = [
-    { key: 'id', label: 'ID' },
     {
       key: 'ingredient',
-      label: 'Ingredient',
+      label: 'Ingredient Name',
       render: (v) => <span className="font-medium text-slate-800">{v}</span>,
     },
     {
       key: 'quantity',
-      label: 'Quantity',
+      label: 'Available Quantity',
       render: (v, row) => `${v} ${row.unit}`,
     },
-    { key: 'supplier', label: 'Supplier' },
-    { key: 'supplierBatch', label: 'Batch #' },
+    { key: 'supplierBatch', label: 'Supplier Batch' },
     {
       key: 'expiryDate',
       label: 'Expiry Date',
@@ -52,12 +51,7 @@ export default function InventoryMonitor() {
     },
     {
       key: 'qualityStatus',
-      label: 'Quality',
-      render: (v) => <Badge label={v} />,
-    },
-    {
-      key: 'stockLevel',
-      label: 'Stock Level',
+      label: 'Status',
       render: (v) => <Badge label={v} />,
     },
   ];
@@ -124,30 +118,118 @@ export default function InventoryMonitor() {
         </div>
       </div>
 
-      {/* Alerts for critical items */}
-      {inventory.filter((i) => i.stockLevel === 'Critical' || i.qualityStatus === 'Damaged').length > 0 && (
-        <div className="mb-5 space-y-2">
-          {inventory
-            .filter((i) => i.stockLevel === 'Critical' || i.qualityStatus === 'Damaged')
-            .map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700"
-              >
-                <AlertTriangle size={16} className="text-red-500 shrink-0" />
-                <span>
-                  <strong>{item.ingredient}</strong> ({item.id}) —{' '}
-                  {item.qualityStatus === 'Damaged' ? 'Batch damaged on arrival.' : 'Critical stock level.'}{' '}
-                  Batch: {item.supplierBatch}
-                </span>
-              </div>
-            ))}
-        </div>
-      )}
-
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+      {/* Current Stock Levels */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-6">
+        <h3 className="text-sm font-semibold text-slate-700 mb-4">Current Stock Levels</h3>
         <p className="text-xs text-slate-400 mb-4">{filtered.length} item(s) found</p>
         <Table columns={columns} data={filtered} emptyMessage="No inventory items match your filters." />
+      </div>
+
+      {/* Near Expiry Materials */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+            <Calendar size={16} className="text-amber-500" />
+            Near Expiry Materials
+          </h3>
+          <div className="space-y-3">
+            {inventory
+              .filter((item) => {
+                const days = Math.ceil((new Date(item.expiryDate) - new Date()) / 86400000);
+                return days <= 7 && days > 0;
+              })
+              .map((item) => {
+                const days = Math.ceil((new Date(item.expiryDate) - new Date()) / 86400000);
+                return (
+                  <div key={item.id} className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div>
+                      <p className="text-sm font-medium text-amber-800">{item.ingredient}</p>
+                      <p className="text-xs text-amber-600">Batch: {item.supplierBatch}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-amber-700">{item.expiryDate}</p>
+                      <p className="text-xs text-amber-600">{days} days remaining</p>
+                    </div>
+                  </div>
+                );
+              })}
+            {inventory.filter((item) => {
+              const days = Math.ceil((new Date(item.expiryDate) - new Date()) / 86400000);
+              return days <= 7 && days > 0;
+            }).length === 0 && (
+              <p className="text-sm text-slate-500 text-center py-4">No items expiring soon</p>
+            )}
+          </div>
+        </div>
+
+        {/* Damaged Goods */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+            <XCircle size={16} className="text-red-500" />
+            Damaged Goods
+          </h3>
+          <div className="space-y-3">
+            {inventory
+              .filter((item) => item.qualityStatus === 'Damaged')
+              .map((item) => (
+                <div key={item.id} className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <div>
+                    <p className="text-sm font-medium text-red-800">{item.ingredient}</p>
+                    <p className="text-xs text-red-600">Batch: {item.supplierBatch}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-red-700">{item.quantity} {item.unit}</p>
+                    <p className="text-xs text-red-600">Quality Issue</p>
+                  </div>
+                </div>
+              ))}
+            {inventory.filter((item) => item.qualityStatus === 'Damaged').length === 0 && (
+              <p className="text-sm text-slate-500 text-center py-4">No damaged goods</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* AI Alerts Section */}
+      <div className="mb-6">
+        <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+          <Brain size={16} className="text-purple-500" />
+          AI Alerts
+        </h3>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <AlertCard
+            type="error"
+            title="Ingredient Quality Issue Detected"
+            description="Black Truffle batch SUP-TRFL-03 shows signs of deterioration. Immediate inspection required."
+            severity="Critical"
+            date="2 hours ago"
+            recommendation="Remove from active inventory and conduct quality assessment."
+          />
+          <AlertCard
+            type="warning"
+            title="Expiry Risk Alert"
+            description="Heavy Cream and Chicken Breast are approaching expiry dates within 48 hours."
+            severity="High"
+            date="4 hours ago"
+            recommendation="Prioritize usage in upcoming meal preparations or consider discounting."
+          />
+          <AlertCard
+            type="warning"
+            title="Repeated Damaged Goods"
+            description="Supplier 'Luxe Pantry Imports' has delivered 3 damaged batches in the past month."
+            severity="Medium"
+            date="1 day ago"
+            recommendation="Review supplier contract and consider alternative sources."
+          />
+          <AlertCard
+            type="info"
+            title="Stock Optimization Opportunity"
+            description="Basmati Rice usage patterns suggest reducing order quantities by 15%."
+            severity="Low"
+            date="2 days ago"
+            recommendation="Adjust next order to optimize storage costs and reduce waste."
+          />
+        </div>
       </div>
     </div>
   );
